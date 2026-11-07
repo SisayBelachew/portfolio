@@ -1076,9 +1076,13 @@ setAdminPassword("");
     I'd be happy to hear from you.
   </p>
   <div className="contact-links">
-    <a href="mailto:s96207171@gmail.com">
-      Send Me an Email
-    </a>
+    <a
+  href="https://mail.google.com/mail/?view=cm&fs=1&to=s96207171@gmail.com"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Send Me an Email
+</a>
     <a
       href="https://github.com/codemaster2121"
       target="_blank"
@@ -1120,7 +1124,11 @@ setAdminPassword("");
         >
           LinkedIn
         </a>
-        <a href="mailto:s96207171@gmail.com">
+        <a
+          href="https://mail.google.com/mail/?view=cm&fs=1&to=s96207171@gmail.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Email Me
         </a>
       </div>
