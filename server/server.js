@@ -18,9 +18,9 @@ app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  // Add your production frontend URL here when deployed
-];
-
+  "https://portfolio-lac-rho-78.vercel.app",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -138,14 +138,15 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
       }
     );
 
-    // Set authentication cookie
-    res.cookie("adminToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 1000,
-      path: "/",
-    });
+  // Set authentication cookie
+   res.cookie("adminToken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite:
+    process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 60 * 60 * 1000,
+    path: "/",
+   });
 
     return res.status(200).json({
       message: "Admin login successful.",
@@ -254,7 +255,8 @@ app.post("/api/auth/logout", (req, res) => {
   res.clearCookie("adminToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite:
+      process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/",
   });
 
