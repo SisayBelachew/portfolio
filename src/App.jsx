@@ -1,9 +1,17 @@
 
 import { useState, useEffect } from "react";
 import "./App.css";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 function App() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [showMore, setShowMore] = useState(false);
+  const [notification, setNotification] = useState("");
+const [notificationType, setNotificationType] = useState("success");
+
+const showNotification = (message, type = "success") => {
+  setNotification(message);
+  setNotificationType(type);
+};
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newTechnologies, setNewTechnologies] = useState("");
@@ -47,7 +55,7 @@ useEffect(() => {
   const checkAdminSession = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/check",
+        `${API_URL}/api/auth/check`,
         {
           method: "GET",
           credentials: "include",
@@ -68,10 +76,20 @@ useEffect(() => {
   };
   checkAdminSession();
 }, []);
+// Automatically hide notifications after 3 seconds
+useEffect(() => {
+  if (!notification) return;
+
+  const timer = setTimeout(() => {
+    setNotification("");
+  }, 3000);
+
+  return () => clearTimeout(timer);
+}, [notification]);
   const handleLogout = async () => {
   try {
     const response = await fetch(
-      "http://localhost:5000/api/auth/logout",
+      `${API_URL}/api/auth/logout`,
       {
         method: "POST",
         credentials: "include",
@@ -89,9 +107,12 @@ useEffect(() => {
     setAdminPassword("");
     setShowSignIn(false);
     setShowMessages(false);
-    alert("You have successfully logged out.");
+    showNotification("You have successfully logged out.");
   } catch (error) {
-    alert(error.message || "Unable to connect to the backend.");
+    showNotification(
+  error.message || "Unable to connect to the backend.",
+  "error"
+);
   }
 };
 const handleContactSubmit = async (event) => {
@@ -109,15 +130,15 @@ const handleContactSubmit = async (event) => {
     setContactMessage("");
     setContactSuccess(false);
     const response = await fetch(
-      "http://localhost:5000/api/messages",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(messageData),
-      }
-    );
+  `${API_URL}/api/messages`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(messageData),
+  }
+);
     const result = await response.json();
     if (!response.ok) {
       throw new Error(result.message || "Failed to send message.");
@@ -138,7 +159,7 @@ const fetchMessages = async () => {
     setMessagesError("");
 
     const response = await fetch(
-      "http://localhost:5000/api/messages",
+      `${API_URL}/api/messages`,
       {
         method: "GET",
         credentials: "include",
@@ -166,7 +187,7 @@ const handleDeleteMessage = async (messageId) => {
   if (!confirmed) return;
   try {
     const response = await fetch(
-      `http://localhost:5000/api/messages/${messageId}`,
+      `${API_URL}/api/messages/${messageId}`,
       {
         method: "DELETE",
         credentials: "include",
@@ -183,12 +204,16 @@ const handleDeleteMessage = async (messageId) => {
         (item) => item._id !== messageId
       )
     );
+    showNotification("Message deleted successfully.");
   } catch (error) {
-    alert(error.message || "Unable to delete message.");
-  }
+  showNotification(
+    error.message || "Unable to delete message.",
+    "error"
+  );
+}
 };
   useEffect(() => {
-    fetch("http://localhost:5000/api/profile")
+    fetch(`${API_URL}/api/profile`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Could not load profile");
@@ -216,7 +241,7 @@ const handleDeleteMessage = async (messageId) => {
   event.preventDefault();
   try {
     const response = await fetch(
-      "http://localhost:5000/api/projects",
+      `${API_URL}/api/projects`,
       {
         method: "POST",
         credentials: "include",
@@ -245,10 +270,10 @@ const handleDeleteMessage = async (messageId) => {
     setNewTitle("");
     setNewDescription("");
     setNewTechnologies("");
-    alert("Project added successfully!");
-  } catch (error) {
-    alert(error.message);
-  }
+    showNotification("Project added successfully!");
+} catch (error) {
+  showNotification(error.message, "error");
+}
 };
 // Start editing a project
 const startEditingProject = (project) => {
@@ -265,7 +290,7 @@ const saveProjectChanges = async (event) => {
   event.preventDefault();
   try {
     const response = await fetch(
-      `http://localhost:5000/api/projects/${editingProjectId}`,
+      `${API_URL}/api/projects/${editingProjectId}`,
       {
         method: "PUT",
         credentials: "include",
@@ -294,10 +319,10 @@ const saveProjectChanges = async (event) => {
       )
     );
     setEditingProjectId(null);
-    alert("Project updated successfully!");
-  } catch (error) {
-    alert(error.message);
-  }
+    showNotification("Project updated successfully.");
+ } catch (error) {
+  showNotification(error.message, "error");
+}
 };
 // Delete a project from MongoDB
 const deleteProject = async (projectId) => {
@@ -307,7 +332,7 @@ const deleteProject = async (projectId) => {
   if (!confirmed) return;
   try {
     const response = await fetch(
-      `http://localhost:5000/api/projects/${projectId}`,
+       `${API_URL}/api/projects/${projectId}`,
       {
         method: "DELETE",
         credentials: "include",
@@ -322,16 +347,16 @@ const deleteProject = async (projectId) => {
         (project) => project._id !== projectId
       )
     );
-    alert("Project deleted successfully!");
+    showNotification("Project deleted successfully.");
   } catch (error) {
-    alert(error.message);
-  }
+  showNotification(error.message, "error");
+}
 };
   useEffect(() => {
   async function fetchProjects() {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/projects"
+        `${API_URL}/api/projects`
       )
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
@@ -348,7 +373,7 @@ const deleteProject = async (projectId) => {
   event.preventDefault();
   setUpdateMessage("");
   try {
-    const response = await fetch("http://localhost:5000/api/profile", {
+    const response = await fetch(`${API_URL}/api/profile`, {
       method: "PUT",
       credentials: "include",
       headers: {
@@ -376,7 +401,8 @@ setNewSkills(
     ? updatedProfile.skills.join(", ")
     : ""
 );
-setUpdateMessage("Profile updated successfully!");
+setUpdateMessage("");
+showNotification("Profile updated successfully.");
   } catch (error) {
     setUpdateMessage(error.message);
   }
@@ -391,6 +417,17 @@ setUpdateMessage("Profile updated successfully!");
   ].length;
    return (
 <div className={`portfolio ${darkMode ? "dark-mode" : "light-mode"}`}>
+  {notification && (
+  <div
+    className={`app-notification ${notificationType}`}
+    role="status"
+  >
+    <span>
+      {notificationType === "success" ? "✓" : "!"}
+    </span>
+    {notification}
+  </div>
+)}
 {showSignIn && (
       <div
         className="signin-overlay"
@@ -417,7 +454,7 @@ setUpdateMessage("Profile updated successfully!");
   setSignInLoading(true);
   try {
     const response = await fetch(
-      "http://localhost:5000/api/auth/login",
+      `${API_URL}/api/auth/login`,
       {
         method: "POST",
         headers: {
@@ -770,15 +807,6 @@ setAdminPassword("");
       {activeDashboardView === "messages" && showMessages && (
         <div className="messages-section">
           <h2>Contact Messages</h2>
-          <button
-            type="button"
-            onClick={() => {
-              setShowMessages(false);
-              setActiveDashboardView("overview");
-            }}
-          >
-            Back to Dashboard
-          </button>
           {messagesLoading && (
             <p>Loading messages...</p>
           )}
@@ -869,34 +897,39 @@ setAdminPassword("");
     {menuOpen ? "✕" : "☰"}
   </button>
   {/* Navigation Links */}
-  <div className={`nav-links ${menuOpen ? "open" : ""}`}>
-    <a href="#home" onClick={() => setMenuOpen(false)}>
-      Home
-    </a>
-    <a href="#about" onClick={() => setMenuOpen(false)}>
-      About
-    </a>
-    <a href="#skills" onClick={() => setMenuOpen(false)}>
-      Skills
-    </a>
-    <a href="#projects" onClick={() => setMenuOpen(false)}>
-      Projects
-    </a>
-    <a href="#contact" onClick={() => setMenuOpen(false)}>
-      Contact
-    </a>
-     <a
-  href="#signin"
-  className="signin-link"
-  onClick={(event) => {
-    event.preventDefault();
-    setShowSignIn(true);
-    setMenuOpen(false);
-  }}
->
-  Sign In
-</a>
-  </div>
+<div className={`nav-links ${menuOpen ? "open" : ""}`}>
+  <a href="#home" onClick={() => setMenuOpen(false)}>
+    Home
+  </a>
+
+  <a href="#about" onClick={() => setMenuOpen(false)}>
+    About
+  </a>
+
+  <a href="#skills" onClick={() => setMenuOpen(false)}>
+    Skills
+  </a>
+
+  <a href="#projects" onClick={() => setMenuOpen(false)}>
+    Projects
+  </a>
+
+  <a href="#contact" onClick={() => setMenuOpen(false)}>
+    Contact
+  </a>
+
+  <a
+    href="#signin"
+    className="signin-link"
+    onClick={(event) => {
+      event.preventDefault();
+      setShowSignIn(true);
+      setMenuOpen(false);
+    }}
+  >
+    Sign In
+  </a>
+</div>
 </nav>
       {/* Home section */}
       <section className="hero" id="home">
@@ -1084,7 +1117,7 @@ setAdminPassword("");
   Send Me an Email
 </a>
     <a
-      href="https://github.com/codemaster2121"
+      href="https://github.com/SisayBelachew"
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -1111,7 +1144,7 @@ setAdminPassword("");
       </div>
       <div className="social-links">
         <a
-          href="https://github.com/codemaster2121"
+          href="https://github.com/SisayBelachew"
           target="_blank"
           rel="noopener noreferrer"
         >
