@@ -13,14 +13,24 @@ const Project = require("./models/Project");
 const Message = require("./models/Message");
 const app = express();
 
+
 app.use(helmet());
+
 // Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+
+  // Vercel production domain
   "https://portfolio-lac-rho-78.vercel.app",
+
+  // Vercel deployment domains
+  "https://portfolio-git-main-sisaybelachew.vercel.app",
+  "https://portfolio-3xrwoeont-sisaybelachew.vercel.app",
+
   process.env.FRONTEND_URL,
 ].filter(Boolean);
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -33,6 +43,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(express.json({ limit: "20kb" }));
 app.use(cookieParser());
 
